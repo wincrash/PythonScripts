@@ -11,7 +11,7 @@ import numpy as np
 import math
 import random
 
-outputFileName="input.vtk"
+outputFileName="input.vtp"
 RMIN=0.001
 RMAX=0.01
 VMIN=-0.1
@@ -39,7 +39,7 @@ V=np.linspace(VMIN, VMAX, num=V_COUNT)
 
 
 rad_seg=vtk.vtkDoubleArray()
-rad_seg.SetName("RADIUS")
+rad_seg.SetName("UNIQUE_RADIUS")
 rad_seg.SetNumberOfComponents(1)
 rad_seg.SetNumberOfTuples(R_COUNT)
 for x in range(R_COUNT):
@@ -84,7 +84,7 @@ poly.GetPointData().SetScalars(rad)
 poly.GetPointData().AddArray(part_type)
 poly.GetPointData().SetVectors(vel)
 poly.GetFieldData().AddArray(rad_seg)
-writer=vtk.vtkDataSetWriter()
+writer=vtk.vtkXMLPolyDataWriter()
 writer.SetInputData(poly)
 writer.SetFileName(outputFileName)
 writer.Write()
