@@ -3,6 +3,7 @@ import sys
 import h5py
 import vtk
 import os
+import math
 
 def GetVectorArray(f,step,name):
     dset = f[step][name][:]
@@ -43,7 +44,7 @@ def CreateDataSet(filename,stepID):
         polys.InsertCellPoint(x);    
     if("UNIQUE_RADIUS" in f[step].keys()):
         array=GetScalarArray(f,step,"UNIQUE_RADIUS")
-        cube.GetFieldData().SetScalars(array)
+        cube.GetFieldData().AddArray(array)
     if("RADIUS" in f[step].keys()):
         array=GetScalarArray(f,step,"RADIUS")
         cube.GetPointData().SetScalars(array)
@@ -71,8 +72,48 @@ def CreateDataSet(filename,stepID):
     if("ACCELERATION" in f[step].keys()):
         array=GetVectorArray(f,step,"ACCELERATION")
         cube.GetPointData().AddArray(array)
+        
+    if("BOND_F_LIMIT_T" in f[step].keys()):
+        array=GetScalarArray(f,step,"BOND_F_LIMIT_T")
+        cube.GetCellData().AddArray(array)
+
+    if("BOND_F_LIMIT_N" in f[step].keys()):
+        array=GetScalarArray(f,step,"BOND_F_LIMIT_N")
+        cube.GetCellData().AddArray(array)
+        
+        
+    if("BOND_STATE" in f[step].keys()):
+        array=GetScalarArray(f,step,"BOND_STATE")
+        cube.GetCellData().AddArray(array)        
+        if(("BOND_PARTICLE_1" in f[step].keys()) and ("BOND_PARTICLE_2" in f[step].keys())):
+            array1=GetScalarArray(f,step,"BOND_PARTICLE_1")
+            array2=GetScalarArray(f,step,"BOND_PARTICLE_2")
+            ilgis=GetScalarArray(f,step,"BOND_STATE")
+            ilgis.SetName("DISTANCE")
+            lines   = vtk.vtkCellArray()
+            for h in range(0,array1.GetNumberOfTuples()):
+                lines.InsertNextCell(2);
+                lines.InsertCellPoint(int(array1.GetTuple1(h)));
+                lines.InsertCellPoint(int(array2.GetTuple1(h)));
+                p1=points.GetPoint(int(array1.GetTuple1(h)))
+                p2=points.GetPoint(int(array2.GetTuple1(h)))
+                xx=p1[0]-p2[0]
+                yy=p1[1]-p2[1]
+                zz=p1[2]-p2[2]
+                ilgis.SetTuple1(h,math.sqrt(xx*xx+yy*yy+zz*zz));
+                #print(h,int(array1.GetTuple1(h)),int(array2.GetTuple1(h)))
+                cube.SetLines(lines)
+                cube.GetCellData().AddArray(ilgis)
+        if("BOND_F_N" in f[step].keys()):
+            array=GetVectorArray(f,step,"BOND_F_N")
+            cube.GetCellData().AddArray(array)
+        if("BOND_F_T" in f[step].keys()):
+            array=GetVectorArray(f,step,"BOND_F_T")
+            cube.GetCellData().AddArray(array)
+    else:
+        cube.SetVerts(polys)        
     cube.SetPoints(points)
-    cube.SetVerts(polys)    
+    
     writer=vtk.vtkXMLPolyDataWriter()    
     writer.SetInputData(cube)
     writer.SetFileName(outputName)

@@ -12,8 +12,8 @@ import math
 import random
 
 outputFileName="input.vtp"
-RMIN=0.001
-RMAX=0.01
+RMIN=0.05
+RMAX=0.1
 VMIN=-0.1
 VMAX=0.1
 R_COUNT=10
