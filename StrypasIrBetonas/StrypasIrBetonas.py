@@ -1,8 +1,9 @@
 #!/usr/bin/python
 from subprocess import call
 import math
+import vtk
 
-R=12
+R=30
 h=1.3
 a=math.sqrt(3)*h
 b=2
@@ -149,13 +150,13 @@ def create3D():
     points.append([0,ilgis])
     points.append([0,0])
     points.append([R/2.0,0])
-    rodData="rotate_extrude($fn=200) polygon( points="+str(points)+" );\n";
+    rodData="translate([0,"+str(R/4)+","+str(R/4)+"])rotate ([-90,0,0])  rotate_extrude($fn=200) polygon( points="+str(points)+" );\n";
     rod=open("rod.scad","w")
     rod.write(rodData)
     rod.close()
     
-    cubesize=[boxSize,boxSize,ilgis-d/2]
-    translate=[-cubesize[0]/2,-cubesize[1]/2,d/4]
+    cubesize=[boxSize,ilgis-d/2,boxSize]
+    translate=[-cubesize[0]/2,d/4,-cubesize[1]/2]
     boxData="translate("+str(translate)+") "+ "cube(size = "+str(cubesize)+", center = false);\n"
     box=open("betonas.scad","w")
     #box.write("difference (){"+boxData+"\n"+rodData+"}\n");
@@ -179,7 +180,6 @@ def create3D():
     
  
 def create2D(aukstis):
-    
     points=[]
     
     ilgis=0
@@ -217,13 +217,101 @@ def create2D(aukstis):
     call(["openscad","-o","rod.stl","rod.scad"])
     
     
+    
        
 #create2D(0.8)
+#DIMENSION=2
+
+
 create3D()
+DIMENSION=3
+
+
+
+
+
+
+def translateAndRotate(data,bounds,scal,outputfilename,DIMENSION):
+    
+    if(DIMENSION==3):
+        tran=vtk.vtkTransform()
+        tran.RotateX(-90) 
+        tfilter=vtk.vtkTransformFilter()
+        tfilter.SetInputData(data)
+        tfilter.SetTransform(tran)
+        tfilter.Update()
+        tran1=vtk.vtkTransform()
+        tran1.Translate(-bounds[0],-bounds[2],-bounds[4])   
+        tfilter1=vtk.vtkTransformFilter()
+        tfilter1.SetInputData(tfilter.GetOutput())
+        tfilter1.SetTransform(tran1)
+        tfilter1.Update()
+        
+    
+        
+        aa=vtk.vtkSTLWriter()
+        aa.SetFileName(outputfilename)
+        aa.SetInputConnection(tfilter1.GetOutputPort())
+        aa.Write()
+
+
+
+
+
+
+
+
+def translateAndScale(data,bounds,scal,outputfilename,DIMENSION):
     
     
+    tran=vtk.vtkTransform()
+    tran.Translate(-bounds[0],-bounds[2],-bounds[4])    
+    tfilter=vtk.vtkTransformFilter()
+    tfilter.SetInputData(data)
+    tfilter.SetTransform(tran)
+    tfilter.Update()
+    tran1=vtk.vtkTransform()
+    tran1.Scale(scal,scal,scal)  
+    tfilter1=vtk.vtkTransformFilter()
+    tfilter1.SetInputData(tfilter.GetOutput())
+    tfilter1.SetTransform(tran1)
+    tfilter1.Update()
     
+
     
+    aa=vtk.vtkSTLWriter()
+    aa.SetFileName(outputfilename)
+    aa.SetInputConnection(tfilter1.GetOutputPort())
+    aa.Write()
+    
+
+boxas=vtk.vtkSTLReader()
+boxas.SetFileName("box.stl")
+boxas.Update()
+bounds=boxas.GetOutput().GetBounds()
+
+rodas=vtk.vtkSTLReader()
+rodas.SetFileName("rod.stl")
+rodas.Update() 
+beton=vtk.vtkSTLReader()
+beton.SetFileName("betonas.stl")
+beton.Update() 
+translateAndScale(boxas.GetOutput(),bounds,0.001,"box.stl",DIMENSION)
+translateAndScale(rodas.GetOutput(),bounds,0.001,"rod.stl",DIMENSION)
+translateAndScale(beton.GetOutput(),bounds,0.001,"betonas.stl",DIMENSION)
+#boxas=vtk.vtkSTLReader()
+#boxas.SetFileName("box.stl")
+#boxas.Update()
+#bounds=boxas.GetOutput().GetBounds()
+#rodas=vtk.vtkSTLReader()
+#rodas.SetFileName("rod.stl")
+#rodas.Update() 
+#beton=vtk.vtkSTLReader()
+#beton.SetFileName("betonas.stl")
+#beton.Update() 
+#translateAndRotate(boxas.GetOutput(),bounds,0.001,"box.stl",DIMENSION)
+#translateAndRotate(rodas.GetOutput(),bounds,0.001,"rod.stl",DIMENSION)
+#translateAndRotate(beton.GetOutput(),bounds,0.001,"betonas.stl",DIMENSION)
     
     
 

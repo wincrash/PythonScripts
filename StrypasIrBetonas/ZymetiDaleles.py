@@ -6,8 +6,8 @@ import random
 box="box.stl"
 betonas="betonas.stl"
 rodas="rod.stl"
-RMIN=1.2
-RMAX=1.2
+RMIN=0.001
+RMAX=0.001
 ITER=1000
 v=0.01
 F_N_RANGES=[[0,0],[5,4],[60,50],[20,15]]
@@ -41,7 +41,7 @@ def DataSetPrepare():
     rad_seg.SetName("UNIQUE_RADIUS")
     rad_seg.SetNumberOfComponents(1)
     rad_seg.SetNumberOfTuples(1)
-    rad_seg.SetTuple1(0,RMIN/1000.0)
+    rad_seg.SetTuple1(0,RMIN)
     
     rad=vtk.vtkDoubleArray()
     rad.SetName("RADIUS")
@@ -70,7 +70,7 @@ def DataSetPrepare():
 
     
     for x in range(KIEKIS):
-        r=reader.GetOutput().GetPointData().GetArray("RADIUS").GetTuple1(x)/1000.0
+        r=reader.GetOutput().GetPointData().GetArray("RADIUS").GetTuple1(x)
         pid=reader.GetOutput().GetPointData().GetArray("ID").GetTuple1(x)
         p=reader.GetOutput().GetPoint(x)
         pp.SetPoint(x,p)
@@ -79,20 +79,20 @@ def DataSetPrepare():
         part_type.SetTuple1(x,0)
         part_fix.SetTuple1(x,0)        
         part_material.SetTuple1(x,pid)
-        #if(True):
-            #if(p[2]<bounds[4]):
-             #   vel.SetTuple3(x,0,0,0)
-              #  part_fix.SetTuple1(x,1) 
-           # if(p[2]>bounds[5]):
-            #    vel.SetTuple3(x,0,0,v)
-             #   part_fix.SetTuple1(x,1)         
-        #else:
-         #   if(p[1]<bounds[2]):
-          #      vel.SetTuple3(x,0,0,0)
-           #     part_fix.SetTuple1(x,1) 
-            #if(p[1]>bounds[3]):
-             #   vel.SetTuple3(x,0,v,0)
-              #  part_fix.SetTuple1(x,1)
+        if(False):
+            if(p[2]<bounds[4]):
+                vel.SetTuple3(x,0,0,0)
+                part_fix.SetTuple1(x,1) 
+            if(p[2]>bounds[5]):
+                vel.SetTuple3(x,0,0,v)
+                part_fix.SetTuple1(x,1)         
+        else:
+            if(p[1]<bounds[2]):
+                vel.SetTuple3(x,0,0,0)
+                part_fix.SetTuple1(x,1) 
+            if(p[1]>bounds[3]):
+                vel.SetTuple3(x,0,v,0)
+                part_fix.SetTuple1(x,1)
 
 
 
@@ -136,47 +136,21 @@ def DataSetPrepare():
     poly.GetPointData().AddArray(part_material)
     poly.GetFieldData().AddArray(rad_seg)
     
-    #poly.SetLines(cellsLines)
-    #poly.GetCellData().SetScalars(state)
-    #poly.GetCellData().AddArray(force_N)
-    #poly.GetCellData().AddArray(force_T)
+    poly.SetLines(cellsLines)
+    poly.GetCellData().SetScalars(state)
+    poly.GetCellData().AddArray(force_N)
+    poly.GetCellData().AddArray(force_T)
     #
-    tran=vtk.vtkTransform()
-    tran.Scale(0.001,0.001,0.001)
-    tfilter=vtk.vtkTransformFilter()
-    tfilter.SetInputData(poly)
-    tfilter.SetTransform(tran)
-    tfilter.Update()
-    tran1=vtk.vtkTransform()
-    #bounds=tfilter.GetOutput().GetBounds()
-    tran1.Translate(-boxbounds[0]/1000.0+RMIN/1000.0,-boxbounds[2]/1000.0+RMIN/1000.0,-boxbounds[4]/1000.0)
-    tfilter1=vtk.vtkTransformFilter()
-    tfilter1.SetInputData(tfilter.GetOutput())
-    tfilter1.SetTransform(tran1)
-    tfilter1.Update()
+    
     writer=vtk.vtkXMLPolyDataWriter()
     writer.SetFileName("input.vtp")
     #writer.SetInputData(poly)
-    writer.SetInputData(tfilter1.GetOutput())
+    writer.SetInputData(poly)
     writer.Write()
-    
-    
-    tran=vtk.vtkTransform()
-    tran.Translate(-boxbounds[0],-boxbounds[2],-boxbounds[4])    
-    tfilter=vtk.vtkTransformFilter()
-    tfilter.SetInputData(boxSTL.GetOutput())
-    tfilter.SetTransform(tran)
-    tfilter.Update()
-    tran1=vtk.vtkTransform()
-    tran1.Scale(0.001,0.001,0.001)  
-    tfilter1=vtk.vtkTransformFilter()
-    tfilter1.SetInputData(tfilter.GetOutput())
-    tfilter1.SetTransform(tran1)
-    tfilter1.Update()
     
     aa=vtk.vtkDataSetWriter()
     aa.SetFileName("mesh.vtk")
-    aa.SetInputConnection(tfilter1.GetOutputPort())
+    aa.SetInputConnection(boxSTL.GetOutputPort())
     aa.Write()
 
 
