@@ -51,6 +51,9 @@ def CreateDataSet(filename,stepID):
     if("PARTICLE_TYPE" in f[step].keys()):
         array=GetScalarArray(f,step,"PARTICLE_TYPE")
         cube.GetPointData().AddArray(array)
+    if("PARTICLE_FIX" in f[step].keys()):
+        array=GetScalarArray(f,step,"PARTICLE_FIX")
+        cube.GetPointData().AddArray(array)
     if("MASS" in f[step].keys()):
         array=GetScalarArray(f,step,"MASS")
         cube.GetPointData().AddArray(array)

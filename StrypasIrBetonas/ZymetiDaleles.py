@@ -2,6 +2,7 @@
 from gengeo import *
 import vtk
 import random
+import GenGeoModule
 
 box="box.stl"
 betonas="betonas.stl"
@@ -309,7 +310,8 @@ def mkPacking (mesh=None,minPoint=None,maxPoint=None,Rmin=0.03,Rmax=0.035,maxFai
 
 if __name__=="__main__":
 #   print "Gengeo script generator: parameters is stlmesh minradius maxradius, maxFailureIterations=2000"
-   (mesh,minPoint,maxPoint)=STLMESH("box.stl")
-   mkPacking(mesh=mesh,minPoint=minPoint,maxPoint=maxPoint,Rmin=RMIN,Rmax=RMAX,maxFailureIterations=ITER)
+   #(mesh,minPoint,maxPoint)=STLMESH("box.stl")
+   #mkPacking(mesh=mesh,minPoint=minPoint,maxPoint=maxPoint,Rmin=RMIN,Rmax=RMAX,maxFailureIterations=ITER)
+   GenGeoModule.GeneratePacking(box,RMIN,RMAX,)
    Sperate()
    DataSetPrepare()
